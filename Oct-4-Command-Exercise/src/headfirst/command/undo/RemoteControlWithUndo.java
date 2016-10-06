@@ -8,7 +8,7 @@ import java.util.*;
 public class RemoteControlWithUndo {
   private Command[] onCommands;
   private Command[] offCommands;
-  private Command undoCommand;
+  private Stack<Command> undoCommands;
 
   public RemoteControlWithUndo() {
     onCommands = new Command[7];
@@ -19,7 +19,7 @@ public class RemoteControlWithUndo {
       onCommands[i] = noCommand;
       offCommands[i] = noCommand;
     }
-    undoCommand = noCommand;
+    undoCommands = new Stack<Command>();
   }
 
   public void setCommand(int slot, Command onCommand, Command offCommand) {
@@ -29,16 +29,20 @@ public class RemoteControlWithUndo {
 
   public void onButtonWasPushed(int slot) {
     onCommands[slot].execute();
-    undoCommand = onCommands[slot];
+    undoCommands.push(onCommands[slot]);
   }
 
   public void offButtonWasPushed(int slot) {
     offCommands[slot].execute();
-    undoCommand = offCommands[slot];
+    undoCommands.push(offCommands[slot]);
   }
 
   public void undoButtonWasPushed() {
-    undoCommand.undo();
+    if (!undoCommands.empty()){
+    	undoCommands.pop().undo();
+    } else {
+    	System.out.println("There's nothing else to undo");
+    }
   }
 
   public String toString() {
@@ -48,7 +52,10 @@ public class RemoteControlWithUndo {
       stringBuff.append("[slot " + i + "] " + onCommands[i].getClass().getName() + "    "
                         + offCommands[i].getClass().getName() + "\n");
     }
-    stringBuff.append("[undo] " + undoCommand.getClass().getName() + "\n");
+    Stack<Command> undoStackCopy = (Stack<Command>) undoCommands.clone();
+    while (!undoStackCopy.empty()) {
+    	stringBuff.append("[undo] " + undoStackCopy.pop().getClass().getName() + "\n");
+    }
     return stringBuff.toString();
   }
 }
